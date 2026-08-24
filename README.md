@@ -12,22 +12,13 @@ actually measures whether the pipeline works, instead of just demoing that it lo
 
 ## Screenshots
 
-<!--
-Add your own screenshots here — take them from the live demo above and save as PNG into
-docs/screenshots/ with these exact filenames, and they'll render automatically on GitHub:
-  - docs/screenshots/upload-and-parse.png   (Upload & Parse tab after a successful parse)
-  - docs/screenshots/jd-matching.png        (JD Matching tab showing a ranked shortlist)
-  - docs/screenshots/analytics.png          (Analytics tab with the skill-demand chart)
-  - docs/screenshots/evaluation-report.png  (Evaluation Report tab after clicking Run Evaluation)
--->
-
-| Upload & Parse | JD Matching |
+| Upload & Parse | Candidate Explorer |
 |---|---|
-| ![Upload & Parse](docs/screenshots/upload-and-parse.png) | ![JD Matching](docs/screenshots/jd-matching.png) |
+| ![Upload & Parse](docs/screenshots/upload-and-parse.png) | ![Candidate Explorer](docs/screenshots/candidate-explorer.png) |
 
-| Analytics | Evaluation Report |
+| JD Matching | Analytics |
 |---|---|
-| ![Analytics](docs/screenshots/analytics.png) | ![Evaluation Report](docs/screenshots/evaluation-report.png) |
+| ![JD Matching](docs/screenshots/jd-matching.png) | ![Analytics](docs/screenshots/analytics.png) |
 
 ## Why this isn't just another "resume parser" project
 
