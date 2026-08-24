@@ -55,7 +55,7 @@ with tab_upload:
             st.markdown(f"**Summary:** {row['summary'] or '—'}")
         with col2:
             st.markdown("**Extracted skills** (tagged by extraction source):")
-            st.dataframe(pd.DataFrame(skills), hide_index=True, use_container_width=True)
+            st.dataframe(pd.DataFrame(skills), hide_index=True, width='stretch')
 
 # ---------------------------------------------------------------- Candidate Explorer
 with tab_explorer:
@@ -74,7 +74,7 @@ with tab_explorer:
         skill_filter = st.text_input("Filter by skill (e.g. 'Python')")
         if skill_filter:
             df = df[df["skills"].str.contains(skill_filter, case=False, na=False)]
-        st.dataframe(df, hide_index=True, use_container_width=True)
+        st.dataframe(df, hide_index=True, width='stretch')
     else:
         st.info("No candidates yet — upload a resume, or run `python scripts/seed_sample_data.py`.")
 
@@ -116,7 +116,7 @@ with tab_analytics:
     if demand:
         st.plotly_chart(
             px.bar(pd.DataFrame(demand), x="skill_name", y="candidate_count", title="Skill demand across candidates"),
-            use_container_width=True,
+            width='stretch',
         )
 
     exp_by_skill = analytics.avg_experience_by_skill()
@@ -124,13 +124,13 @@ with tab_analytics:
         st.plotly_chart(
             px.bar(pd.DataFrame(exp_by_skill), x="skill_name", y="avg_years_experience",
                    title="Average years of experience by skill"),
-            use_container_width=True,
+            width='stretch',
         )
 
     cost = analytics.extraction_cost_summary()
     if cost:
         st.markdown("**Extraction cost/latency by method** (why the pipeline is hybrid, not LLM-only):")
-        st.dataframe(pd.DataFrame(cost), hide_index=True, use_container_width=True)
+        st.dataframe(pd.DataFrame(cost), hide_index=True, width='stretch')
 
 # ---------------------------------------------------------------- Evaluation Report
 with tab_eval:
@@ -147,7 +147,7 @@ with tab_eval:
             reports = run_full_evaluation(include_hybrid=include_hybrid)
         st.dataframe(
             pd.DataFrame([r.__dict__ for r in reports]).drop(columns=["per_jd_correlation"]),
-            hide_index=True, use_container_width=True,
+            hide_index=True, width='stretch',
         )
         for r in reports:
             st.markdown(f"**{r.method} — per-JD Spearman correlation:**")
