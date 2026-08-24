@@ -5,6 +5,12 @@ from app.parsing.rule_based import (
     extract_total_years_experience,
 )
 
+ALL_CAPS_HEADER = (
+    "VARDHINEEDI UDAY KIRAN\n"
+    "+91 9992922121 | vuday3336@gmail.com | linkedin.com/in/vardhineedi-uday-kiran | "
+    "github.com/Vuday3336\nProfessional Summary"
+)
+
 SAMPLE_RESUME = """
 Priya Nair
 priya.nair.dev@example.com | +1 555-201-3344 | linkedin.com/in/priyanairdev | github.com/priyanair
@@ -49,3 +55,16 @@ def test_extract_total_years_experience():
 
 def test_extract_total_years_experience_returns_none_when_absent():
     assert extract_total_years_experience("No experience statement here.") is None
+
+
+def test_extract_name_from_all_caps_header():
+    # Regression test: spaCy's PERSON tagger is unreliable on ALL-CAPS text, which previously
+    # caused the extractor to fall through and grab the contact-info line instead of the name.
+    contact = extract_contact_info(ALL_CAPS_HEADER)
+    assert contact.full_name == "Vardhineedi Uday Kiran"
+
+
+def test_extract_name_does_not_grab_contact_info_line():
+    contact = extract_contact_info(ALL_CAPS_HEADER)
+    assert "linkedin.com" not in contact.full_name
+    assert "@" not in contact.full_name

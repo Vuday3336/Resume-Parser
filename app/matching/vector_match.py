@@ -13,9 +13,16 @@ def embed_job_description(jd_text: str) -> list[float]:
 
 def shortlist_candidates(jd_embedding: list[float], limit: int = 10) -> list[dict]:
     """Returns candidates ranked by cosine similarity, most similar first.
-    `1 - cosine_distance` converts pgvector's distance metric into an intuitive 0-1 similarity."""
+    `1 - cosine_distance` converts pgvector's distance metric into an intuitive 0-1 similarity.
+
+    `SET LOCAL ivfflat.probes` matters here: our index is built with `lists = 10`
+    (see supabase/schema.sql), and IVFFlat's default of 1 probe only searches a single
+    cluster — with a small candidate pool that can miss real matches entirely rather than
+    just rank them lower. Raising probes to match `lists` trades a little speed for
+    correctness at this scale; at a much larger scale you'd tune both together."""
     rows = fetch_all(
         """
+        SET LOCAL ivfflat.probes = 10;
         SELECT
             r.id AS resume_id,
             c.full_name,

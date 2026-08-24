@@ -20,6 +20,8 @@ _GITHUB_RE = re.compile(r"(https?://)?(www\.)?github\.com/[A-Za-z0-9\-_]+/?", re
 
 _YEARS_EXPERIENCE_RE = re.compile(r"(\d+(?:\.\d+)?)\+?\s*years?\s+(?:of\s+)?experience", re.IGNORECASE)
 
+_NAME_LINE_RE = re.compile(r"^[A-Za-z][A-Za-z.'\-]*(?:\s+[A-Za-z][A-Za-z.'\-]*){0,4}$")
+
 _nlp = None
 
 
@@ -47,12 +49,42 @@ def extract_contact_info(text: str) -> ContactInfo:
     )
 
 
+def _looks_like_name(candidate: str) -> bool:
+    """Rejects anything that couldn't plausibly be a person's name — URLs, emails, and
+    contact-info lines in particular, which is what this exists to guard against."""
+    candidate = candidate.strip()
+    if not candidate or len(candidate) > 60:
+        return False
+    if any(ch in candidate for ch in ("@", "|", "/", "\\", "http", ".com")):
+        return False
+    if re.search(r"\d", candidate):
+        return False
+    return bool(_NAME_LINE_RE.match(candidate))
+
+
+def _normalize_case(name: str) -> str:
+    # Many resume headers put the name in ALL CAPS ("VARDHINEEDI UDAY KIRAN") — title-case it
+    # for display. Leave mixed-case names untouched since capitalization may be intentional.
+    return name.title() if name.isupper() else name
+
+
 def _guess_name(text: str) -> str | None:
-    """Heuristic: the first PERSON entity spaCy finds in the top few lines of the resume."""
-    header = "\n".join(text.strip().splitlines()[:5])
-    doc = _get_nlp()(header)
+    """Tries the most common resume convention first — name is the very first line — since
+    spaCy's statistical PERSON tagger is unreliable on ALL-CAPS text, which many resume headers
+    use and which the first-line heuristic handles directly instead. Falls back to spaCy NER
+    over the remaining header lines (with obvious contact-info lines filtered out first) for
+    layouts where the name isn't on line one."""
+    lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
+    if lines and _looks_like_name(lines[0]):
+        return _normalize_case(lines[0])
+
+    header_lines = [
+        line for line in lines[:5]
+        if not any(marker in line for marker in ("@", "http", ".com", "|"))
+    ]
+    doc = _get_nlp()("\n".join(header_lines))
     for ent in doc.ents:
-        if ent.label_ == "PERSON":
+        if ent.label_ == "PERSON" and _looks_like_name(ent.text):
             return ent.text
     return None
 
