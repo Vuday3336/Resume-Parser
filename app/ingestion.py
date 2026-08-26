@@ -7,6 +7,7 @@ cost/latency tradeoffs instead of hand-waving them.
 """
 from app.db import execute, execute_returning_id
 from app.embeddings.embedder import embed_resume_text
+from app.parsing.experience_years import estimate_years_from_experience
 from app.parsing.llm_extract import run_llm_extraction
 from app.parsing.rule_based import run_rule_based_extraction
 from app.parsing.schema import ExtractionSource, ParsedResume
@@ -35,13 +36,20 @@ def parse_resume(raw_text: str, use_llm: bool = True) -> ParsedResume:
             merged_skills.append(skill)
             skill_names_seen.add(skill.name.lower())
 
+    # Explicit statements ("3 years of experience") are trusted over derived ones — a candidate's
+    # own claim beats our arithmetic. Only fall back to summing work-history durations when the
+    # resume never states a total at all.
+    total_years = rule_result["total_years_experience"]
+    if total_years is None:
+        total_years = estimate_years_from_experience(llm_result["experience"])
+
     return ParsedResume(
         contact=rule_result["contact"],
         summary=llm_result["summary"],
         education=llm_result["education"],
         experience=llm_result["experience"],
         skills=merged_skills,
-        total_years_experience=rule_result["total_years_experience"],
+        total_years_experience=total_years,
         raw_text=raw_text,
         extraction_method=ExtractionSource.MERGED,
         rule_based_latency_ms=rule_result["latency_ms"],
